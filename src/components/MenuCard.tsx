@@ -10,11 +10,6 @@ type MenuCardProps = {
 };
 
 export default function MenuCard({ item, lang }: MenuCardProps) {
-  const t = {
-    fr: { add: "Ajouter" },
-    ar: { add: "إضافة" },
-  };
-
   return (
     <motion.div
       whileHover={{ y: -10, scale: 1.02 }}
@@ -40,17 +35,11 @@ export default function MenuCard({ item, lang }: MenuCardProps) {
       </div>
       
       <div className="p-5 flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start">
           <h3 className={`text-xl font-bold text-dark ${lang === "ar" ? "font-tajawal" : "font-montserrat"}`}>
             {lang === "ar" ? item.nameAr : item.nameFr}
           </h3>
           <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
-        </div>
-        
-        <div className="mt-auto pt-4">
-          <button className="w-full py-3 bg-gray-50 text-dark font-bold rounded-xl border-2 border-transparent group-hover:bg-primary group-hover:text-white group-hover:shadow-[0_0_15px_rgba(204,0,0,0.4)] transition-all duration-300">
-            {t[lang].add}
-          </button>
         </div>
       </div>
     </motion.div>
