@@ -82,7 +82,7 @@ export default function Navbar({ lang, setLang }: NavbarProps) {
                 href={link.href}
                 className={`font-semibold transition-colors duration-200 ${
                   isScrolled ? "text-dark hover:text-primary" : "text-white hover:text-flame-yellow"
-                } ${lang === "ar" ? "font-tajawal ml-8 space-x-0" : "font-montserrat mr-8"}`}
+                } ${lang === "ar" ? "font-tajawal" : "font-montserrat"}`}
               >
                 {link.name}
               </a>
