@@ -15,8 +15,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "M9ila | مقيلة - Fast Food Fruits de Mer",
-  description: "La Saveur Enflammée de la Mer. Fast food Casablanca, Maroc.",
+  title: "M9ila | مقيلة - Meilleur Fast Food à Casablanca | أفضل فاست فود في الدار البيضاء",
+  description: "M9ila — Fast food complet à Maarif, Casablanca. Burgers, sandwichs, fruits de mer, tajines, salades. Livraison rapide via Glovo. مقيلة — فاست فود متكامل في معاريف، الدار البيضاء.",
 };
 
 export default function RootLayout({

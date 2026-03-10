@@ -13,7 +13,7 @@ export default function About({ lang }: AboutProps) {
     fr: {
       title: "À Propos de M9ila",
       story:
-        "Fondé en 2020 au cœur de Maarif, Casablanca, M9ila est né de la passion pour les fruits de mer frais et la cuisine marocaine authentique. Nous offrons une expérience fast-food unique avec nos tajines, sandwichs et salades inspirés des saveurs de l'océan.",
+        "Fondé en 2020 au cœur de Maarif, M9ila est le fast food incontournable de Casablanca. Burgers, sandwichs, fruits de mer, tajines — tout ce dont vous avez envie, préparé avec passion.",
       stats: {
         followers: "21K+ Followers",
         since: "Depuis 2020",
@@ -28,7 +28,7 @@ export default function About({ lang }: AboutProps) {
     ar: {
       title: "عن مقيلة",
       story:
-        "تأسست مقيلة في عام 2020 في قلب المعاريف بالدار البيضاء، من الشغف بالمأكولات البحرية الطازجة والمطبخ المغربي الأصيل. نقدم تجربة وجبات سريعة فريدة من نوعها مع طواجننا وسندويشاتنا وسلطاتنا المستوحاة من نكهات المحيط.",
+        "تأسست مقيلة عام 2020 في قلب معاريف، الدار البيضاء. فاست فود متكامل: ساندويتش، فواكه البحر، طاجين وأكثر — كل ما تشتهيه، محضّر بشغف.",
       stats: {
         followers: "+21 ألف متابع",
         since: "منذ 2020",
@@ -119,7 +119,14 @@ export default function About({ lang }: AboutProps) {
                 <Image src="https://picsum.photos/id/835/600/400" alt="Restaurant interior" fill className="object-cover" />
               </div>
               <div className="relative rounded-2xl overflow-hidden flex items-center justify-center">
-                <Image src="/images/navbar%20-%20primary%20(transparent)@4x.png" alt="M9ila Brand" width={250} height={100} className="object-contain" />
+                <Image 
+                  src="/images/navbar%20-%20primary%20(transparent)@4x.png" 
+                  alt="M9ila Brand" 
+                  width={180} 
+                  height={60} 
+                  className="h-[60px] w-auto object-contain" 
+                  style={{ objectFit: "contain" }}
+                />
               </div>
               <div className="relative rounded-2xl overflow-hidden">
                 <Image src="https://picsum.photos/id/292/400/400" alt="Fresh food prep" fill className="object-cover" />

@@ -10,12 +10,16 @@ type HeroProps = {
 export default function Hero({ lang }: HeroProps) {
   const t = {
     fr: {
-      tagline: "La Saveur Enflammée de la Mer",
+      badge: "#1 Fast Food à Casablanca",
+      tagline: "La Vraie Saveur de Casa",
+      subtitle: "Sandwichs • Fruits de mer • Tajines • Salades — Livraison rapide à Casablanca",
       menuBtn: "Voir le Menu",
       orderBtn: "Commander",
     },
     ar: {
-      tagline: "أكلة البحر الملتهبة",
+      badge: "أفضل فاست فود في الدار البيضاء",
+      tagline: "الطعم الحقيقي من قلب كازا",
+      subtitle: "ساندويتش • فواكه البحر • طاجين • سلطة — توصيل سريع في الدار البيضاء",
       menuBtn: "عرض القائمة",
       orderBtn: "اطلب الآن",
     },
@@ -42,18 +46,22 @@ export default function Hero({ lang }: HeroProps) {
           transition={{ duration: 0.8 }}
           className="mb-8"
         >
+          <div className="inline-block px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white font-bold text-sm mb-6 border border-white/20">
+            {t[lang].badge}
+          </div>
           <Image
             src="/images/navbar%20-%20dark%20(transparent)@4x.png"
             alt="M9ila Logo"
-            width={400}
-            height={200}
-            className="w-64 md:w-96 drop-shadow-2xl"
+            width={200}
+            height={80}
+            className="h-20 w-auto object-contain drop-shadow-2xl mx-auto"
+            style={{ objectFit: "contain" }}
             priority
           />
         </motion.div>
 
         <motion.h1 
-          className={`text-4xl md:text-6xl font-black text-white mb-10 drop-shadow-lg max-w-3xl ${
+          className={`text-4xl md:text-6xl font-black text-white mb-4 drop-shadow-lg max-w-3xl ${
             lang === "ar" ? "font-tajawal leading-tight" : "font-montserrat leading-tight"
           }`}
           initial={{ opacity: 0, scale: 0.9 }}
@@ -62,6 +70,17 @@ export default function Hero({ lang }: HeroProps) {
         >
           {t[lang].tagline}
         </motion.h1>
+
+        <motion.p
+          className={`text-lg md:text-xl text-white/90 mb-10 max-w-2xl font-medium ${
+            lang === "ar" ? "font-tajawal" : "font-montserrat"
+          }`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          {t[lang].subtitle}
+        </motion.p>
 
         <motion.div
           className="flex flex-col sm:flex-row gap-6"
@@ -79,7 +98,7 @@ export default function Hero({ lang }: HeroProps) {
             href="#delivery"
             className="px-8 py-4 bg-dark text-white font-bold text-lg rounded-full shadow-xl hover:bg-black transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
           >
-            {t[lang].orderBtn} 🛵
+            {t[lang].orderBtn}
           </a>
         </motion.div>
       </div>

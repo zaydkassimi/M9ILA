@@ -8,7 +8,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "logodownload.org",
+        hostname: "upload.wikimedia.org",
       },
     ],
   },

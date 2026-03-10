@@ -21,7 +21,7 @@ export default function Footer({ lang }: FooterProps) {
       rights: "© 2024 M9ila. Tous droits réservés.",
       quickLinks: "Liens Rapides",
       contactUs: "Contactez-nous",
-      tagline: "La Saveur Enflammée de la Mer.",
+      tagline: "Le Fast Food Incontournable de Casa 🔥",
     },
     ar: {
       address: "95 شارع بئرانزران، المعاريف، الدار البيضاء",
@@ -30,7 +30,7 @@ export default function Footer({ lang }: FooterProps) {
       rights: "© 2024 مقيلة. جميع الحقوق محفوظة.",
       quickLinks: "روابط سريعة",
       contactUs: "اتصل بنا",
-      tagline: "أكلة البحر الملتهبة.",
+      tagline: "أفضل فاست فود في كازا 🔥",
     },
   };
 
@@ -46,9 +46,10 @@ export default function Footer({ lang }: FooterProps) {
             <Image
               src="/images/navbar%20-%20dark%20(transparent)@4x.png"
               alt="M9ila Logo"
-              width={180}
-              height={80}
-              className="mb-6"
+              width={150}
+              height={50}
+              className="h-[50px] w-auto object-contain mb-6"
+              style={{ objectFit: "contain" }}
             />
             <p className="text-gray-400 mb-6 text-lg">
               {currentT.tagline}

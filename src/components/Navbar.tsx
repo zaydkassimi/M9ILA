@@ -65,9 +65,10 @@ export default function Navbar({ lang, setLang }: NavbarProps) {
               <Image
                 src={logoSrc}
                 alt="M9ila Logo"
-                width={150}
-                height={50}
-                className="object-contain transition-all duration-300"
+                width={120}
+                height={40}
+                className="h-8 md:h-10 w-auto object-contain transition-all duration-300"
+                style={{ objectFit: "contain" }}
                 priority
               />
             </a>

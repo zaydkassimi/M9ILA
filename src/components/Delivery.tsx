@@ -108,19 +108,31 @@ export default function Delivery({ lang }: DeliveryProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-16">
-          <Image src="/images/navbar%20-%20dark%20(transparent)@4x.png" alt="M9ila Logo" width={200} height={80} className="opacity-90" />
+          <Image 
+            src="/images/navbar%20-%20dark%20(transparent)@4x.png" 
+            alt="M9ila Logo" 
+            width={180} 
+            height={60} 
+            className="h-[60px] w-auto object-contain opacity-90" 
+            style={{ objectFit: "contain" }}
+          />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <motion.div
+          <motion.a
+            href="https://glovoapp.com"
+            target="_blank"
             whileHover={{ scale: 1.05 }}
-            className="bg-[#FFC244] w-64 h-20 rounded-2xl flex items-center justify-center px-6 shadow-xl cursor-pointer"
+            className="bg-white border border-gray-200 w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl transition-all"
           >
-            <div className="text-center">
-              <span className="block text-sm font-bold text-[#00A082] uppercase mb-1">{currentT.glovo}</span>
-              <Image src="https://logodownload.org/wp-content/uploads/2019/05/glovo-logo-1.png" width={120} height={40} alt="Glovo" className="mx-auto brightness-0" />
-            </div>
-          </motion.div>
+            <Image 
+              src="/images/glovo.png" 
+              width={120} 
+              height={40} 
+              alt="Glovo" 
+              style={{ objectFit: "contain" }}
+            />
+          </motion.a>
 
           <motion.a
             href="tel:0520333555"
