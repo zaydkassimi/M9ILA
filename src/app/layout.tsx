@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
-import { Tajawal, Montserrat } from "next/font/google";
+import { Tajawal, Montserrat, Geist } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const tajawal = Tajawal({
   subsets: ["arabic"],
@@ -25,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" dir="ltr">
+    <html lang="fr" dir="ltr" className={cn("font-sans", geist.variable)}>
       <body
         className={`${tajawal.variable} ${montserrat.variable} font-montserrat antialiased text-dark bg-background`}
       >
