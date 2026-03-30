@@ -16,7 +16,7 @@ export default function MenuCard({ item, lang }: MenuCardProps) {
       className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden group hover:shadow-2xl hover:shadow-flame-orange/20 transition-all duration-300 flex flex-col h-full"
       dir={lang === "ar" ? "rtl" : "ltr"}
     >
-      <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+      <div className="relative h-40 sm:h-48 w-full bg-gray-100 overflow-hidden">
         {item.imagePlaceholderId ? (
           <Image
             src={`https://picsum.photos/id/${item.imagePlaceholderId}/500/300`}

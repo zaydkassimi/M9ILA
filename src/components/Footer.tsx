@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 type FooterProps = {
   lang: "fr" | "ar";
+  settings?: Record<string, string>;
 };
 
 export default function Footer({ lang }: FooterProps) {

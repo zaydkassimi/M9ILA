@@ -90,7 +90,7 @@ export default function Testimonials({ lang }: TestimonialsProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.2 }}
-              className="bg-white p-8 rounded-3xl shadow-xl relative"
+              className="bg-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl relative"
             >
               <div className="flex gap-1 mb-4">
                 {[...Array(5)].map((_, i) => (
@@ -101,7 +101,7 @@ export default function Testimonials({ lang }: TestimonialsProps) {
                   />
                 ))}
               </div>
-              <p className={`text-lg text-gray-700 italic mb-6 leading-relaxed ${lang === "ar" ? "font-tajawal" : "font-montserrat"}`}>
+              <p className={`text-base sm:text-lg text-gray-700 italic mb-6 leading-relaxed ${lang === "ar" ? "font-tajawal" : "font-montserrat"}`}>
                 &quot;{review.comment}&quot;
               </p>
               <div className="flex items-center justify-between border-t pt-6">

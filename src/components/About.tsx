@@ -6,6 +6,7 @@ import { MapPin, Clock, Users, ShieldCheck, Zap } from "lucide-react";
 
 type AboutProps = {
   lang: "fr" | "ar";
+  settings?: Record<string, string>;
 };
 
 export default function About({ lang }: AboutProps) {
@@ -111,7 +112,7 @@ export default function About({ lang }: AboutProps) {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative h-[600px] w-full rounded-3xl overflow-hidden shadow-2xl"
+            className="relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] w-full rounded-3xl overflow-hidden shadow-2xl"
           >
             {/* Split layout for a dynamic restaurant image collage vibe */}
             <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-2 p-2 bg-white">

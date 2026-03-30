@@ -6,6 +6,7 @@ import { Smartphone, ChefHat, Bike } from "lucide-react";
 
 type DeliveryProps = {
   lang: "fr" | "ar";
+  settings?: Record<string, string>;
 };
 
 export default function Delivery({ lang }: DeliveryProps) {
@@ -123,7 +124,7 @@ export default function Delivery({ lang }: DeliveryProps) {
             href="https://glovoapp.com"
             target="_blank"
             whileHover={{ scale: 1.05 }}
-            className="bg-white border border-gray-200 w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl transition-all"
+            className="bg-white border border-gray-200 w-full sm:w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl transition-all"
           >
             <Image 
               src="/images/glovo.png" 
@@ -137,7 +138,7 @@ export default function Delivery({ lang }: DeliveryProps) {
           <motion.a
             href="tel:0520333555"
             whileHover={{ scale: 1.05 }}
-            className="bg-primary text-white font-bold text-xl px-8 w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 border-2 border-primary hover:bg-transparent transition-all"
+            className="bg-primary text-white font-bold text-lg sm:text-xl px-8 w-full sm:w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 border-2 border-primary hover:bg-transparent transition-all"
           >
             {currentT.cta} <br/> 0520 333 555
           </motion.a>

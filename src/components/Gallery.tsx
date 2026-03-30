@@ -76,7 +76,7 @@ export default function Gallery({ lang }: GalleryProps) {
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-flame-orange text-white font-bold py-4 px-10 rounded-full shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all text-xl"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-primary to-flame-orange text-white font-bold py-3 sm:py-4 px-6 sm:px-10 rounded-full shadow-xl shadow-primary/20 hover:shadow-primary/40 transition-all text-base sm:text-xl"
           >
             <span className="text-2xl">📸</span>
             {t[lang].follow}

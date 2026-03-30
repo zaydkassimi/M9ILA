@@ -45,12 +45,12 @@ export default function Menu({ lang }: MenuProps) {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex overflow-x-auto hide-scrollbar gap-4 mb-12 pb-4 justify-start md:justify-center">
+        <div className="flex overflow-x-auto gap-3 mb-12 pb-4 px-1 snap-x snap-mandatory md:justify-center md:snap-none">
           {menuData.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`whitespace-nowrap px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 ${
+              className={`snap-start whitespace-nowrap px-5 py-2.5 rounded-full font-bold text-sm sm:text-base transition-all duration-300 ${
                 activeCategory === category.id
                   ? "bg-primary text-white shadow-xl shadow-primary/30 transform -translate-y-1"
                   : "bg-white text-dark hover:bg-flame-yellow/20 hover:text-primary shadow-sm"

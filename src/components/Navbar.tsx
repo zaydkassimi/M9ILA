@@ -7,9 +7,11 @@ import { Menu, X, Globe } from "lucide-react";
 type NavbarProps = {
   lang: "fr" | "ar";
   setLang: (l: "fr" | "ar") => void;
+  languageMode?: string;
+  settings?: Record<string, string>;
 };
 
-export default function Navbar({ lang, setLang }: NavbarProps) {
+export default function Navbar({ lang, setLang, languageMode = "both" }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -88,17 +90,19 @@ export default function Navbar({ lang, setLang }: NavbarProps) {
               </a>
             ))}
             
-            <button
-              onClick={() => setLang(lang === "fr" ? "ar" : "fr")}
-              className={`flex items-center gap-2 font-bold px-3 py-1 rounded-full border-2 transition-colors ${
-                isScrolled 
-                  ? "border-primary text-primary hover:bg-primary hover:text-white" 
-                  : "border-white text-white hover:bg-white hover:text-primary"
-              }`}
-            >
-              <Globe size={18} />
-              {lang === "fr" ? "AR" : "FR"}
-            </button>
+            {languageMode === "both" && (
+              <button
+                onClick={() => setLang(lang === "fr" ? "ar" : "fr")}
+                className={`flex items-center gap-2 font-bold px-3 py-1 rounded-full border-2 transition-colors ${
+                  isScrolled 
+                    ? "border-primary text-primary hover:bg-primary hover:text-white" 
+                    : "border-white text-white hover:bg-white hover:text-primary"
+                }`}
+              >
+                <Globe size={18} />
+                {lang === "fr" ? "AR" : "FR"}
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -115,28 +119,30 @@ export default function Navbar({ lang, setLang }: NavbarProps) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white shadow-xl absolute top-full left-0 w-full">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="md:hidden bg-white shadow-xl absolute top-full left-0 w-full animate-in slide-in-from-top duration-200">
+          <div className="px-4 pt-3 pb-4 space-y-1">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-base font-bold text-dark hover:text-primary hover:bg-gray-50"
+                className="block px-4 py-3 text-base font-bold text-dark hover:text-primary hover:bg-gray-50 rounded-xl transition-colors"
               >
                 {link.name}
               </a>
             ))}
-            <button
-              onClick={() => {
-                setLang(lang === "fr" ? "ar" : "fr");
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-left px-3 py-2 text-base font-bold text-primary hover:bg-gray-50 flex items-center gap-2"
-            >
-              <Globe size={20} />
-              {lang === "fr" ? "Passez en Arabe (AR)" : "Passer au Français (FR)"}
-            </button>
+            {languageMode === "both" && (
+              <button
+                onClick={() => {
+                  setLang(lang === "fr" ? "ar" : "fr");
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-3 text-base font-bold text-primary hover:bg-gray-50 flex items-center gap-2 rounded-xl transition-colors"
+              >
+                <Globe size={20} />
+                {lang === "fr" ? "Passez en Arabe (AR)" : "Passer au Français (FR)"}
+              </button>
+            )}
           </div>
         </div>
       )}
