@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { writeFile, mkdir } from "fs/promises";
+import { createHash } from "crypto";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -27,14 +27,22 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const ext = path.extname(file.name).toLowerCase();
-    const filename = `${uuidv4()}${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    // Create a hash-based filename for easy DB storage and uniqueness
+    const timestamp = Date.now().toString(36);
+    const hash = createHash("md5").update(buffer).digest("hex").substring(0, 12);
+    const ext = path.extname(file.name).toLowerCase() || ".webp";
+    const filename = `m9ila_${timestamp}_${hash}${ext}`;
 
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, filename), buffer);
 
-    return NextResponse.json({ url: `/uploads/${filename}` });
+    return NextResponse.json({
+      url: `/uploads/${filename}`,
+      filename,
+      size: file.size,
+      type: file.type,
+    });
   } catch {
     return NextResponse.json({ error: "Erreur lors de l'upload" }, { status: 500 });
   }

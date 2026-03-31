@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -12,19 +11,26 @@ export async function middleware(request: NextRequest) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
-  // Protect admin pages (except login)
+  // Let all auth routes pass through without interference
+  if (pathname.startsWith("/api/auth")) {
+    return response;
+  }
+
+  // Protect admin pages
   if (pathname.startsWith("/admin")) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
+    const tokenCookie = request.cookies.get("next-auth.session-token") ||
+                        request.cookies.get("__Secure-next-auth.session-token");
+    if (!tokenCookie) {
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  // Protect admin API routes (but NOT auth routes)
+  // Protect admin API routes
   if (pathname.startsWith("/api/admin") || pathname.startsWith("/api/upload")) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
+    const tokenCookie = request.cookies.get("next-auth.session-token") ||
+                        request.cookies.get("__Secure-next-auth.session-token");
+    if (!tokenCookie) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
   }
