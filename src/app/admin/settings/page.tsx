@@ -59,13 +59,31 @@ export default function SettingsPage() {
       toast.error("Configurez d'abord la clé API dans l'onglet IA");
       return;
     }
+
+    const fieldPrompts: Record<string, { label: string; language: "fr" | "ar"; kind: "name" | "tagline" }> = {
+      site_name_fr: { label: "nom du restaurant", language: "fr", kind: "name" },
+      site_name_ar: { label: "اسم المطعم", language: "ar", kind: "name" },
+      site_tagline_fr: { label: "tagline du site", language: "fr", kind: "tagline" },
+      site_tagline_ar: { label: "شعار الموقع", language: "ar", kind: "tagline" },
+    };
+
+    const config = fieldPrompts[field] || { label: field, language: "fr" as const, kind: "tagline" as const };
+    const instruction = config.kind === "name"
+      ? (config.language === "fr"
+        ? `Propose un nom court et naturel pour un restaurant à Casablanca. Réponds uniquement avec le nom, sans guillemets, sans préambule, sans ponctuation finale inutile.`
+        : `اقترح اسمًا قصيرًا وطبيعيًا لمطعم في الدار البيضاء. أجب بالاسم فقط، بدون أي مقدمة أو علامات اقتباس أو شرح.`)
+      : (config.language === "fr"
+        ? `Rédige une tagline marketing courte pour un restaurant à Casablanca. Réponds uniquement avec la tagline, en une seule phrase, sans guillemets, sans introduction, sans texte avant ou après.`
+        : `اكتب شعارًا تسويقيًا قصيرًا لمطعم في الدار البيضاء. أجب بالشعار فقط، في جملة واحدة، بدون أي مقدمة أو علامات اقتباس أو شرح.`);
+
     setAiGenerating(true);
     try {
       const res = await fetch("/api/ai-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `Génère uniquement le contenu pour: ${field}. Retourne juste le texte, rien d'autre.`,
+          targetField: field,
+          message: instruction,
           context: `Restaurant: ${settings.site_name_fr || "M9ila"}. Adresse: ${settings.address_fr || ""}. Spécialité: fruits de mer, sandwichs, tajines à Casablanca.`,
         }),
       });
