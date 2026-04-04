@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   const admins = await prisma.admin.findMany({
-    select: { id: true, email: true, name: true, role: true, createdAt: true, updatedAt: true },
+    select: { id: true, email: true, name: true, role: true, createdAt: true, updatedAt: true, avatarUrl: true, canAccessSettings: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
 
     const passwordHash = await bcrypt.hash(data.password, 12);
     const admin = await prisma.admin.create({
-      data: { email: data.email, passwordHash, name: data.name, role: data.role },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
+      data: { email: data.email, passwordHash, name: data.name, role: data.role, canAccessSettings: body.canAccessSettings || false },
+      select: { id: true, email: true, name: true, role: true, createdAt: true, avatarUrl: true, canAccessSettings: true },
     });
 
     return NextResponse.json(admin, { status: 201 });

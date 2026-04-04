@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -34,6 +35,9 @@ import {
   Flame,
   ChevronsUpDown,
   LogOut,
+  Bot,
+  User,
+  UserCog,
 } from "lucide-react";
 
 const navItems = [
@@ -42,8 +46,10 @@ const navItems = [
   { title: "Catégories", url: "/admin/categories", icon: FolderOpen },
   { title: "Commandes", url: "/admin/orders", icon: Package },
   { title: "Contacts", url: "/admin/contacts", icon: Mail },
+  { title: "Assistant IA", url: "/admin/ai-assistant", icon: Bot },
   { title: "Paramètres", url: "/admin/settings", icon: Settings },
   { title: "Administrateurs", url: "/admin/admins", icon: Users },
+  { title: "Mon profil", url: "/admin/profile", icon: UserCog },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -52,12 +58,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isMobile, state } = useSidebar();
   const user = session?.user as any;
   const collapsed = state === "collapsed";
+  const isSuperadmin = user?.role === "superadmin";
 
   const initials = user?.name
     ?.split(" ")
     .map((n: string) => n[0])
     .join("")
     .toUpperCase() || "A";
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.url === "/admin/settings" && !isSuperadmin && user?.canAccessSettings !== true) return false;
+    if (item.url === "/admin/admins" && !isSuperadmin) return false;
+    return true;
+  });
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -83,7 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarContent className="py-2">
         <SidebarMenu>
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.url || (item.url !== "/admin" && pathname.startsWith(item.url));
             return (
               <SidebarMenuItem key={item.title}>
@@ -105,8 +118,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <button className="flex w-full items-center gap-2.5 rounded-md p-2 text-left text-sm transition-colors hover:bg-sidebar-accent">
+                  <button className="flex w-full items-center gap-2.5 rounded-md p-2 text-left text-sm transition-colors hover:bg-sidebar-accent cursor-pointer">
                     <Avatar className="size-7 shrink-0 rounded-lg">
+                      <AvatarImage src={user?.avatarUrl || ""} alt={user?.name || "Admin"} />
                       <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#CC0000] to-[#FF6600] text-white text-[10px] font-bold">
                         {initials}
                       </AvatarFallback>
@@ -124,26 +138,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 }
               />
               <DropdownMenuContent
-                className="min-w-56 rounded-lg"
+                className="w-56 rounded-lg"
                 side={isMobile ? "bottom" : "right"}
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                    <Avatar className="size-8 rounded-lg">
-                      <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#CC0000] to-[#FF6600] text-white text-xs font-bold">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">{user?.name || "Admin"}</span>
-                      <span className="truncate text-xs">{user?.email || ""}</span>
-                    </div>
+                <DropdownMenuLabel className="flex items-center gap-2 p-3">
+                  <Avatar className="size-9 rounded-lg">
+                    <AvatarImage src={user?.avatarUrl || ""} alt={user?.name || "Admin"} />
+                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-[#CC0000] to-[#FF6600] text-white text-xs font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user?.name || "Admin"}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.email || ""}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => window.location.href = "/admin/profile"} className="cursor-pointer">
+                    <User className="mr-2 size-4" />
+                    Mon profil
+                  </DropdownMenuItem>
+                  {isSuperadmin && (
+                    <DropdownMenuItem onClick={() => window.location.href = "/admin/settings"} className="cursor-pointer">
+                      <Settings className="mr-2 size-4" />
+                      Paramètres
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })} className="text-destructive focus:text-destructive cursor-pointer">
                   <LogOut className="mr-2 size-4" />
                   Se déconnecter
                 </DropdownMenuItem>

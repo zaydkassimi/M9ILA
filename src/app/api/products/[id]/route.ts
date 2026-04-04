@@ -29,6 +29,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     if (body.emoji !== undefined) updateData.emoji = body.emoji;
     if (body.categoryId) updateData.categoryId = body.categoryId;
     if (typeof body.isAvailable === "boolean") updateData.isAvailable = body.isAvailable;
+    if (typeof body.isFeatured === "boolean") updateData.isFeatured = body.isFeatured;
+    if (typeof body.isPopular === "boolean") updateData.isPopular = body.isPopular;
+    if (typeof body.prepTimeMinutes === "number") updateData.prepTimeMinutes = body.prepTimeMinutes;
+    if (typeof body.spicinessLevel === "number") updateData.spicinessLevel = body.spicinessLevel;
+    if (body.allergens !== undefined) updateData.allergens = body.allergens;
+    if (body.dietaryTags !== undefined) updateData.dietaryTags = body.dietaryTags;
+    if (body.costPrice !== undefined) updateData.costPrice = body.costPrice;
     if (typeof body.sortOrder === "number") updateData.sortOrder = body.sortOrder;
 
     const product = await prisma.product.update({

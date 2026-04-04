@@ -37,7 +37,7 @@ export default function Home() {
       {settings.contact_form_enabled === "true" && <ContactForm lang={lang} />}
       <Footer lang={lang} settings={settings} />
       {settings.ai_enabled === "true" && (
-        <AIChatBot lang={lang} welcomeMessage={lang === "ar" ? settings.ai_welcome_ar : settings.ai_welcome_fr} />
+        <AIChatBot lang={lang} welcomeMessage={lang === "ar" ? settings.ai_welcome_ar : settings.ai_welcome_fr} settings={settings} />
       )}
     </main>
   );
