@@ -316,7 +316,8 @@ export default function ProductsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `Génère une description appétissante de 1-2 phrases pour: "${form.nameFr}" (${form.nameAr}). Prix: ${form.price} DH. Catégorie: ${categories.find(c => c.id === form.categoryId)?.nameFr || ""}. ${lang === "ar" ? "Réponds en arabe uniquement." : "Réponds en français uniquement."} Retourne juste la description, rien d'autre.`,
+          targetField: lang === "fr" ? "product_description_fr" : "product_description_ar",
+          message: `Produit: "${form.nameFr}" (${form.nameAr}). Prix: ${form.price} DH. Catégorie: ${categories.find(c => c.id === form.categoryId)?.nameFr || ""}. ${lang === "ar" ? "Génère la description EN ARABE UNIQUEMENT." : "Génère la description EN FRANÇAIS UNIQUEMENT."} Ne fournis AUCUNE traduction en anglais ni d'autre langue.`,
         }),
       });
       const data = await res.json();
@@ -375,7 +376,12 @@ export default function ProductsPage() {
         </div>
         <Select value={filterCategory} onValueChange={(v) => v && setFilterCategory(v)}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Catégorie" />
+            <SelectValue placeholder="Catégorie">
+              {(val: string) => {
+                if (val === "all") return "Toutes catégories";
+                return categories.find(c => c.id === val)?.nameFr || "Catégorie";
+              }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Toutes catégories</SelectItem>
@@ -384,7 +390,17 @@ export default function ProductsPage() {
         </Select>
         <Select value={filterStatus} onValueChange={(v) => v && setFilterStatus(v)}>
           <SelectTrigger className="w-full sm:w-44">
-            <SelectValue placeholder="Statut" />
+            <SelectValue placeholder="Statut">
+              {(val: string) => {
+                switch (val) {
+                  case "available": return "Disponibles";
+                  case "unavailable": return "Indisponibles";
+                  case "featured": return "⭐ En avant";
+                  case "popular": return "🔥 Populaires";
+                  default: return "Tous";
+                }
+              }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous</SelectItem>
@@ -553,7 +569,7 @@ export default function ProductsPage() {
 
       {/* Edit/Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-xl">
               {editing ? "Modifier le produit" : "Nouveau produit"}
@@ -613,7 +629,11 @@ export default function ProductsPage() {
                     value={form.categoryId || undefined}
                     onValueChange={(v) => setForm({ ...form, categoryId: v || "" })}
                   >
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Choisir">
+                        {(val: string) => val ? categories.find(c => c.id === val)?.nameFr || val : "Choisir"}
+                      </SelectValue>
+                    </SelectTrigger>
                     <SelectContent>
                       {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.nameFr}</SelectItem>)}
                     </SelectContent>
@@ -656,32 +676,62 @@ export default function ProductsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Description (FR)</Label>
-                  <div className="flex gap-2">
+                  <div className="relative">
                     <Textarea
                       value={form.descriptionFr}
                       onChange={e => setForm({ ...form, descriptionFr: e.target.value })}
                       placeholder="Description du plat..."
                       rows={2}
-                      className="text-sm flex-1"
+                      className={`text-sm pr-12 transition-all ${
+                        aiGenerating ? 'animate-gemini-shimmer' : ''
+                      }`}
                     />
-                    <Button size="icon" variant="outline" className="shrink-0 h-9 w-9 self-end" onClick={() => aiGenerateDescription("fr")} disabled={aiGenerating} title="Générer avec IA">
-                      {aiGenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className={`absolute bottom-2 right-2 h-8 w-8 text-muted-foreground hover:text-primary transition-all ${
+                        aiGenerating ? 'animate-pulse' : ''
+                      }`}
+                      onClick={() => aiGenerateDescription("fr")} 
+                      disabled={aiGenerating} 
+                      title="Générer avec IA"
+                    >
+                      {aiGenerating ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Description (AR)</Label>
-                  <div className="flex gap-2">
+                  <div className="relative">
                     <Textarea
                       value={form.descriptionAr}
                       onChange={e => setForm({ ...form, descriptionAr: e.target.value })}
                       placeholder="وصف الطبق..."
                       dir="rtl"
                       rows={2}
-                      className="text-sm flex-1"
+                      className={`text-sm pl-12 transition-all ${
+                        aiGenerating ? 'animate-gemini-shimmer' : ''
+                      }`}
                     />
-                    <Button size="icon" variant="outline" className="shrink-0 h-9 w-9 self-end" onClick={() => aiGenerateDescription("ar")} disabled={aiGenerating} title="Générer avec IA">
-                      {aiGenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className={`absolute bottom-2 left-2 h-8 w-8 text-muted-foreground hover:text-primary transition-all ${
+                        aiGenerating ? 'animate-pulse' : ''
+                      }`}
+                      onClick={() => aiGenerateDescription("ar")} 
+                      disabled={aiGenerating} 
+                      title="Générer avec IA"
+                    >
+                      {aiGenerating ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-4" />
+                      )}
                     </Button>
                   </div>
                 </div>

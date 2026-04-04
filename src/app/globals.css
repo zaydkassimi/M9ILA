@@ -64,4 +64,19 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-flame-orange;
   }
+
+  @keyframes gemini-shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-gemini-shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.5) 50%, transparent 100%);
+    background-size: 1000px 100%;
+    animation: gemini-shimmer 2s infinite;
+  }
 }
