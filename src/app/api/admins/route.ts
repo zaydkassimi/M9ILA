@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { adminSchema, sanitizeString } from "@/lib/validations";
 import bcrypt from "bcryptjs";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -20,6 +21,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const rl = await rateLimit("admins_post", 5, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de requêtes" },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || (session.user as any).role !== "superadmin") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });

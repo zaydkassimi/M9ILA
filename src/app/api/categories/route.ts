@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
+  const rl = await rateLimit("categories_get", 120, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de requêtes" },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const all = searchParams.get("all") === "true";
 
@@ -15,6 +24,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rl = await rateLimit("categories_post", 20, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de requêtes" },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   try {
     const { getServerSession } = await import("next-auth");
     const { authOptions } = await import("@/lib/auth");

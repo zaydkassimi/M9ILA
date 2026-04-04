@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { contactSchema, sanitizeString } from "@/lib/validations";
+import { contactSchema, sanitizeString, escapeHtml } from "@/lib/validations";
 import nodemailer from "nodemailer";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
   const unreadOnly = searchParams.get("unread") === "true";
 
-  const where: any = unreadOnly ? { isRead: false } : {};
+  const where: Record<string, boolean> = unreadOnly ? { isRead: false } : {};
 
   const [contacts, total] = await Promise.all([
     prisma.contactSubmission.findMany({
@@ -30,6 +31,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rl = await rateLimit("contact_post", 5, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de tentatives. Réessayez plus tard." },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   const enabledSetting = await prisma.setting.findUnique({ where: { key: "contact_form_enabled" } });
   if (enabledSetting?.value !== "true") {
     return NextResponse.json({ error: "Le formulaire de contact est désactivé" }, { status: 403 });
@@ -46,7 +55,7 @@ export async function POST(request: Request) {
     });
 
     const submission = await prisma.contactSubmission.create({ data });
-    sendContactEmail(submission).catch(console.error);
+    sendContactEmail(submission).catch(() => {});
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (e: any) {
@@ -78,14 +87,25 @@ async function sendContactEmail(submission: { name: string; email: string; phone
     from: config.smtp_from || config.smtp_user,
     to: config.email || config.smtp_user,
     subject: `[M9ila Contact] ${submission.subject || "Nouveau message"}`,
+    text: [
+      "Nouveau message de contact",
+      "",
+      `Nom: ${submission.name}`,
+      `Email: ${submission.email}`,
+      `Téléphone: ${submission.phone || "N/A"}`,
+      `Sujet: ${submission.subject || "N/A"}`,
+      "",
+      "Message:",
+      submission.message,
+    ].join("\n"),
     html: `
       <h2>Nouveau message de contact</h2>
-      <p><strong>Nom:</strong> ${submission.name}</p>
-      <p><strong>Email:</strong> ${submission.email}</p>
-      <p><strong>Téléphone:</strong> ${submission.phone || "N/A"}</p>
-      <p><strong>Sujet:</strong> ${submission.subject || "N/A"}</p>
+      <p><strong>Nom:</strong> ${escapeHtml(submission.name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(submission.email)}</p>
+      <p><strong>Téléphone:</strong> ${escapeHtml(submission.phone || "N/A")}</p>
+      <p><strong>Sujet:</strong> ${escapeHtml(submission.subject || "N/A")}</p>
       <p><strong>Message:</strong></p>
-      <p>${submission.message.replace(/\n/g, "<br>")}</p>
+      <p>${escapeHtml(submission.message).replace(/\n/g, "<br>")}</p>
     `,
   });
 }

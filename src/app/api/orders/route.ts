@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { orderSchema, sanitizeString } from "@/lib/validations";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
 
-  const where: any = status ? { status } : {};
+  const where: Record<string, string> = status ? { status } : {};
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
@@ -29,6 +30,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const rl = await rateLimit("orders_post", 10, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de commandes. Réessayez plus tard." },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   const codSetting = await prisma.setting.findUnique({ where: { key: "cod_enabled" } });
   const orderSetting = await prisma.setting.findUnique({ where: { key: "online_ordering_enabled" } });
 

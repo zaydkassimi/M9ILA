@@ -4,8 +4,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { sanitizeString } from "@/lib/validations";
 import bcrypt from "bcryptjs";
+import { rateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  const rl = await rateLimit("admins_put", 10, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de requêtes" },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || (session.user as any).role !== "superadmin") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
@@ -13,7 +22,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
   try {
     const body = await request.json();
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (body.email) updateData.email = body.email.toLowerCase().trim();
     if (body.name) updateData.name = sanitizeString(body.name);
     if (body.role && ["admin", "superadmin"].includes(body.role)) updateData.role = body.role;
@@ -34,6 +43,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  const rl = await rateLimit("admins_delete", 5, 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Trop de requêtes" },
+      { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(rl.reset)) } }
+    );
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || (session.user as any).role !== "superadmin") {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });

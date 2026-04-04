@@ -1,16 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Default admin
-  const hash = await bcrypt.hash("admin123", 12);
+  const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || randomBytes(16).toString("hex");
+  const hash = await bcrypt.hash(defaultPassword, 12);
   await prisma.admin.upsert({
     where: { email: "admin@m9ila.com" },
     update: {},
     create: { email: "admin@m9ila.com", passwordHash: hash, name: "Admin M9ila", role: "superadmin" },
   });
+
+  if (process.env.DEFAULT_ADMIN_PASSWORD) {
+    console.log("Default admin password was set from environment variable.");
+  } else {
+    console.log(`\n========================================`);
+    console.log(`DEFAULT ADMIN PASSWORD: ${defaultPassword}`);
+    console.log(`Change this password immediately after first login!`);
+    console.log(`========================================\n`);
+  }
 
   // Default settings
   const defaults: Record<string, string> = {

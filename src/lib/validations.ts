@@ -41,7 +41,12 @@ export const contactSchema = z.object({
 
 export const adminSchema = z.object({
   email: z.string().email("Email invalide").max(200),
-  password: z.string().min(8, "Minimum 8 caractères").max(100),
+  password: z.string()
+    .min(8, "Minimum 8 caractères")
+    .max(100)
+    .regex(/[A-Z]/, "Doit contenir au moins une majuscule")
+    .regex(/[a-z]/, "Doit contenir au moins une minuscule")
+    .regex(/[0-9]/, "Doit contenir au moins un chiffre"),
   name: z.string().min(1, "Nom requis").max(100),
   role: z.enum(["admin", "superadmin"]).optional().default("admin"),
 });
@@ -51,10 +56,16 @@ export const chatSchema = z.object({
   lang: z.enum(["fr", "ar"]).optional().default("fr"),
 });
 
-export function sanitizeString(input: string): string {
+export function escapeHtml(input: string): string {
   return input
-    .replace(/[<>]/g, "")
-    .replace(/javascript:/gi, "")
-    .replace(/on\w+=/gi, "")
-    .trim();
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .replace(/\//g, "&#x2F;");
+}
+
+export function sanitizeString(input: string): string {
+  return escapeHtml(input).trim();
 }
