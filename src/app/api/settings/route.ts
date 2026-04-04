@@ -36,12 +36,13 @@ export async function PATCH(request: Request) {
       "site_name_fr", "site_name_ar", "site_tagline_fr", "site_tagline_ar",
       "phone", "email", "address_fr", "address_ar", "instagram_url", "language_mode",
       "primary_color", "flame_orange", "flame_yellow", "brand_bg", "dark_color",
-      "cod_enabled", "online_ordering_enabled", "contact_form_enabled", "ai_enabled", "glovo_enabled",
+      "cod_enabled", "online_ordering_enabled", "contact_form_enabled", "ai_enabled", "glovo_enabled", "glovo_url",
       "smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from",
       "ai_api_key", "ai_model", "ai_instructions", "ai_welcome_fr", "ai_welcome_ar",
       "logo_url", "logo_light_url",
       "hero_badge_fr", "hero_badge_ar", "hero_tagline_fr", "hero_tagline_ar",
       "hero_subtitle_fr", "hero_subtitle_ar",
+      "gallery_images",
     ]);
 
     for (const item of body) {

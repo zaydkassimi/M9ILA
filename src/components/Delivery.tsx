@@ -9,7 +9,11 @@ type DeliveryProps = {
   settings?: Record<string, string>;
 };
 
-export default function Delivery({ lang }: DeliveryProps) {
+export default function Delivery({ lang, settings }: DeliveryProps) {
+  const phone = settings?.phone || "0520333555";
+  const formattedPhone = phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+  const glovoUrl = settings?.glovo_url || "https://glovoapp.com";
+  const showGlovo = settings?.glovo_enabled === "true";
   const t = {
     fr: {
       title: "Livraison Rapide",
@@ -120,28 +124,30 @@ export default function Delivery({ lang }: DeliveryProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <motion.a
-            href="https://glovoapp.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.05 }}
-            className="bg-white border border-gray-200 w-full sm:w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl transition-all"
-          >
-            <Image 
-              src="/images/glovo.png" 
-              width={120} 
-              height={40} 
-              alt="Glovo" 
-              style={{ objectFit: "contain" }}
-            />
-          </motion.a>
+          {showGlovo && (
+            <motion.a
+              href={glovoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05 }}
+              className="bg-white border border-gray-200 w-full sm:w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl transition-all"
+            >
+              <Image
+                src="/images/glovo.png"
+                width={120}
+                height={40}
+                alt="Glovo"
+                style={{ objectFit: "contain" }}
+              />
+            </motion.a>
+          )}
 
           <motion.a
-            href="tel:0520333555"
+            href={`tel:${phone}`}
             whileHover={{ scale: 1.05 }}
             className="bg-primary text-white font-bold text-lg sm:text-xl px-8 w-full sm:w-64 h-20 rounded-2xl flex items-center justify-center shadow-xl shadow-primary/30 border-2 border-primary hover:bg-transparent transition-all"
           >
-            {currentT.cta} <br/> 0520 333 555
+            {currentT.cta} <br/> {formattedPhone}
           </motion.a>
         </div>
 

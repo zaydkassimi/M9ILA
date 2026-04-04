@@ -32,7 +32,7 @@ export default function Home() {
       <About lang={lang} settings={settings} />
       <Menu lang={lang} />
       <Delivery lang={lang} settings={settings} />
-      <Gallery lang={lang} />
+      <Gallery lang={lang} settings={settings} />
       <Testimonials lang={lang} />
       {settings.contact_form_enabled === "true" && <ContactForm lang={lang} />}
       <Footer lang={lang} settings={settings} />

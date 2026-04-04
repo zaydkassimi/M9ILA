@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Save, Palette, Globe, Mail, Bot, ToggleLeft } from "lucide-react";
+import { Save, Palette, Globe, Mail, Bot, ToggleLeft, Image as ImageIcon, Plus, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
@@ -58,6 +58,7 @@ export default function SettingsPage() {
           <TabsTrigger value="features" className="gap-2"><ToggleLeft className="size-4" /> Fonctionnalités</TabsTrigger>
           <TabsTrigger value="smtp" className="gap-2"><Mail className="size-4" /> SMTP</TabsTrigger>
           <TabsTrigger value="ai" className="gap-2"><Bot className="size-4" /> IA</TabsTrigger>
+          <TabsTrigger value="gallery" className="gap-2"><ImageIcon className="size-4" /> Galerie</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -81,6 +82,7 @@ export default function SettingsPage() {
                 <div className="space-y-2"><Label>Adresse (AR)</Label><Input value={settings.address_ar || ""} onChange={e => update("address_ar", e.target.value)} dir="rtl" /></div>
               </div>
               <div className="space-y-2"><Label>Instagram</Label><Input value={settings.instagram_url || ""} onChange={e => update("instagram_url", e.target.value)} /></div>
+              <div className="space-y-2"><Label>URL Glovo</Label><Input value={settings.glovo_url || ""} onChange={e => update("glovo_url", e.target.value)} placeholder="https://glovoapp.com" /></div>
               <div className="space-y-2">
                 <Label>Mode de langue</Label>
                 <Select value={settings.language_mode || "both"} onValueChange={(v: string | null) => update("language_mode", v || "both")}>
@@ -92,7 +94,7 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => saveAll(["site_name_fr","site_name_ar","site_tagline_fr","site_tagline_ar","phone","email","address_fr","address_ar","instagram_url","language_mode"])} disabled={saving} className="bg-[#CC0000] hover:bg-[#AA0000]">
+              <Button onClick={() => saveAll(["site_name_fr","site_name_ar","site_tagline_fr","site_tagline_ar","phone","email","address_fr","address_ar","instagram_url","glovo_url","language_mode"])} disabled={saving} className="bg-[#CC0000] hover:bg-[#AA0000]">
                 <Save className="mr-2 size-4" /> Enregistrer
               </Button>
             </CardContent>
@@ -199,7 +201,136 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="gallery">
+          <GalleryTab settings={settings} saveAll={saveAll} saving={saving} />
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+type GalleryImage = { url: string; alt: string };
+
+function GalleryTab({ settings, saveAll, saving }: { settings: Record<string, string>; saveAll: (keys: string[]) => Promise<void>; saving: boolean }) {
+  const [images, setImages] = useState<GalleryImage[]>(() => {
+    try {
+      return settings.gallery_images ? JSON.parse(settings.gallery_images) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [uploading, setUploading] = useState(false);
+
+  const addImage = () => {
+    setImages(prev => [...prev, { url: "", alt: "" }]);
+  };
+
+  const updateImage = (index: number, field: keyof GalleryImage, value: string) => {
+    setImages(prev => prev.map((img, i) => i === index ? { ...img, [field]: value } : img));
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpload = async (index: number, file: File) => {
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    if (res.ok) {
+      const data = await res.json();
+      updateImage(index, "url", data.url);
+      toast.success("Image téléchargée");
+    } else {
+      toast.error("Erreur lors du téléchargement");
+    }
+    setUploading(false);
+  };
+
+  const saveGallery = async () => {
+    const value = JSON.stringify(images.filter(img => img.url));
+    await fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify([{ key: "gallery_images", value }]),
+    });
+    toast.success("Galerie enregistrée");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Galerie d&apos;images</CardTitle>
+        <CardDescription>Gérez les images de la galerie du site</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {images.map((img, idx) => (
+          <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+            <div className="flex-1 space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="URL de l'image"
+                  value={img.url}
+                  onChange={e => updateImage(idx, "url", e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  placeholder="Description"
+                  value={img.alt}
+                  onChange={e => updateImage(idx, "alt", e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex gap-2">
+                <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                  <ImageIcon className="size-4" />
+                  Télécharger
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) handleUpload(idx, file);
+                    }}
+                    disabled={uploading}
+                  />
+                </label>
+                <button
+                  onClick={() => removeImage(idx)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  aria-label="Supprimer"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+              {img.url && (
+                <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
+                  <img src={img.url} alt={img.alt || ""} className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <button
+          onClick={addImage}
+          className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors"
+        >
+          <Plus size={18} />
+          Ajouter une image
+        </button>
+
+        <Button
+          onClick={saveGallery}
+          disabled={saving}
+          className="bg-[#CC0000] hover:bg-[#AA0000]"
+        >
+          <Save className="mr-2 size-4" /> Enregistrer
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

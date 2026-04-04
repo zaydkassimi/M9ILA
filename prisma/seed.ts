@@ -5,22 +5,18 @@ import { randomBytes } from "crypto";
 const prisma = new PrismaClient();
 
 async function main() {
-  const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || randomBytes(16).toString("hex");
+  const defaultPassword = process.env.SEED_ADMIN_PASSWORD || randomBytes(16).toString("hex");
   const hash = await bcrypt.hash(defaultPassword, 12);
   await prisma.admin.upsert({
     where: { email: "admin@m9ila.com" },
-    update: {},
+    update: { passwordHash: hash },
     create: { email: "admin@m9ila.com", passwordHash: hash, name: "Admin M9ila", role: "superadmin" },
   });
 
-  if (process.env.DEFAULT_ADMIN_PASSWORD) {
-    console.log("Default admin password was set from environment variable.");
-  } else {
-    console.log(`\n========================================`);
-    console.log(`DEFAULT ADMIN PASSWORD: ${defaultPassword}`);
-    console.log(`Change this password immediately after first login!`);
-    console.log(`========================================\n`);
-  }
+  console.log("\n========================================");
+  console.log(`DEFAULT ADMIN PASSWORD: ${defaultPassword}`);
+  console.log(`CHANGE THIS PASSWORD IMMEDIATELY after first login!`);
+  console.log("========================================\n");
 
   // Default settings
   const defaults: Record<string, string> = {
@@ -40,6 +36,7 @@ async function main() {
     address_fr: "95 Boulevard Bir Anzarane, Maarif, Casablanca",
     address_ar: "95 شارع بئرانزران، المعاريف، الدار البيضاء",
     instagram_url: "https://instagram.com/m9ila_com",
+    glovo_url: "https://glovoapp.com",
     glovo_enabled: "true",
     cod_enabled: "true",
     online_ordering_enabled: "false",

@@ -9,29 +9,37 @@ type FooterProps = {
   settings?: Record<string, string>;
 };
 
-export default function Footer({ lang }: FooterProps) {
+export default function Footer({ lang, settings }: FooterProps) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const phone = settings?.phone || "0520333555";
+  const formattedPhone = phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+  const instagramUrl = settings?.instagram_url || "https://instagram.com/m9ila_com";
+  const email = settings?.email || "contact@m9ila.com";
+  const addressFr = settings?.address_fr || "95 Boulevard Bir Anzarane, Maarif, Casablanca";
+  const addressAr = settings?.address_ar || "95 شارع بئرانزران، المعاريف، الدار البيضاء";
+  const currentYear = new Date().getFullYear();
+
   const t = {
     fr: {
-      address: "95 Boulevard Bir Anzarane, Maarif, Casablanca",
-      phone: "0520 333 555",
-      email: "contact@m9ila.com",
-      rights: "© 2024 M9ila. Tous droits réservés.",
+      address: addressFr,
+      phone: formattedPhone,
+      email,
+      rights: `© ${currentYear} M9ila. Tous droits réservés.`,
       quickLinks: "Liens Rapides",
       contactUs: "Contactez-nous",
-      tagline: "Le Fast Food Incontournable de Casa 🔥",
+      tagline: settings?.site_tagline_fr || "Le Fast Food Incontournable de Casa",
     },
     ar: {
-      address: "95 شارع بئرانزران، المعاريف، الدار البيضاء",
-      phone: "0520 333 555",
-      email: "contact@m9ila.com",
-      rights: "© 2024 مقيلة. جميع الحقوق محفوظة.",
+      address: addressAr,
+      phone: formattedPhone,
+      email,
+      rights: `© ${currentYear} مقيلة. جميع الحقوق محفوظة.`,
       quickLinks: "روابط سريعة",
       contactUs: "اتصل بنا",
-      tagline: "أفضل فاست فود في كازا 🔥",
+      tagline: settings?.site_tagline_ar || "أفضل فاست فود في كازا",
     },
   };
 
@@ -57,8 +65,9 @@ export default function Footer({ lang }: FooterProps) {
             </p>
             <div className="flex gap-4">
               <motion.a 
-                href="https://instagram.com/m9ila_com" 
+                href={instagramUrl}
                 target="_blank"
+                rel="noopener noreferrer"
                 whileHover={{ y: -5, color: "#FF6600" }}
                 className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center transition-colors"
                 aria-label="Instagram"
@@ -66,7 +75,7 @@ export default function Footer({ lang }: FooterProps) {
                 <Instagram size={24} />
               </motion.a>
               <motion.a 
-                href="tel:0520333555"
+                href={`tel:${phone}`}
                 whileHover={{ y: -5, color: "#CC0000" }}
                 className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center transition-colors"
                 aria-label="Phone"
