@@ -95,6 +95,24 @@ export default function OrderPage() {
   const currentT = t[lang];
 
   useEffect(() => {
+    const savedCart = localStorage.getItem("m9ila_cart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch {
+        localStorage.removeItem("m9ila_cart");
+      }
+    }
+    setCartLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (cartLoaded) {
+      localStorage.setItem("m9ila_cart", JSON.stringify(cart));
+    }
+  }, [cart, cartLoaded]);
+
+  useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => {
@@ -178,6 +196,7 @@ export default function OrderPage() {
     if (res.ok) {
       setOrderSuccess(true);
       setCart([]);
+      localStorage.removeItem("m9ila_cart");
       setCheckoutOpen(false);
       setForm({ customerName: "", customerPhone: "", customerAddress: "", notes: "" });
     } else {
