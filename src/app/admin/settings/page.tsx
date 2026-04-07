@@ -9,36 +9,123 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Save, Palette, Globe, Mail, Bot, ToggleLeft, Image as ImageIcon, Plus, Trash2, Sparkles } from "lucide-react";
+import { Save, Palette, Globe, Mail, Bot, ToggleLeft, Image as ImageIcon, Plus, Trash2, Sparkles, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const AI_MODELS = [
-  { value: "openrouter/auto", label: "Auto (Best available)" },
-  { value: "openai/gpt-4o", label: "GPT-4o" },
+  { value: "openai/gpt-4o", label: "GPT-4o (Premium)" },
   { value: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
-  { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
-  { value: "anthropic/claude-3.5-haiku", label: "Claude 3.5 Haiku" },
-  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash" },
+  { value: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet (Premium)" },
+  { value: "google/gemini-2.0-pro-exp-02-05:free", label: "Gemini 2.0 Pro (Gratuit)" },
+  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash (Gratuit)" },
+  { value: "deepseek/deepseek-r1", label: "DeepSeek R1" },
+  { value: "deepseek/deepseek-r1:free", label: "DeepSeek R1 (Gratuit)" },
   { value: "meta-llama/llama-3.3-70b-instruct", label: "Llama 3.3 70B" },
   { value: "mistralai/mistral-large", label: "Mistral Large" },
+  { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B (Gratuit)" },
+  { value: "openrouter/auto", label: "Auto (Meilleur modèle)" }
 ];
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [aiGenerating, setAiGenerating] = useState(false);
+  const [generatingField, setGeneratingField] = useState<string | null>(null);
+  const [isEditingKey, setIsEditingKey] = useState(false);
+  const [validatingKey, setValidatingKey] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
+  const [aiModels, setAiModels] = useState<{ value: string, label: string }[]>(AI_MODELS);
 
   const fetchSettings = useCallback(async () => {
     const res = await fetch("/api/settings");
-    setSettings(await res.json());
+    const data = await res.json();
+    setSettings(data);
+    if (!data.ai_api_key) setIsEditingKey(true);
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+  const fetchModels = useCallback(async () => {
+    if (!settings.ai_api_key || isEditingKey) return;
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: { "Authorization": `Bearer ${settings.ai_api_key}` }
+      });
+      const data = await res.json();
+      if (data && data.data) {
+        const fetched = data.data.map((m: any) => {
+          const isFree = parseFloat(m.pricing?.prompt) === 0 && parseFloat(m.pricing?.completion) === 0;
+          return {
+            value: m.id,
+            label: `${m.name} ${isFree ? '(Gratuit)' : ''}`
+          };
+        });
+        // Trier pour mettre les modèles gratuits en premier
+        fetched.sort((a: any, b: any) => {
+          if (a.label.includes('(Gratuit)') && !b.label.includes('(Gratuit)')) return -1;
+          if (!a.label.includes('(Gratuit)') && b.label.includes('(Gratuit)')) return 1;
+          return a.label.localeCompare(b.label);
+        });
+        setAiModels([
+          { value: "openrouter/auto", label: "Auto (Meilleur modèle)" },
+          ...fetched
+        ]);
+      }
+    } catch {
+      console.error("Impossible de charger les modèles OpenRouter");
+    }
+  }, []);
+
+  useEffect(() => { 
+    fetchSettings(); 
+  }, [fetchSettings]);
+
+  useEffect(() => {
+    if (settings.ai_api_key && !isEditingKey) {
+      fetchModels();
+    } else {
+      setAiModels([{ value: "openrouter/auto", label: "Auto (Meilleur modèle)" }]);
+    }
+  }, [settings.ai_api_key, isEditingKey, fetchModels]);
+
+  useEffect(() => {
+    if (!isEditingKey || !settings.ai_api_key) {
+      setKeyError(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setValidatingKey(true);
+      try {
+        const checkRes = await fetch("https://openrouter.ai/api/v1/auth/key", {
+          headers: { Authorization: `Bearer ${settings.ai_api_key}` }
+        });
+        if (checkRes.ok) {
+          setKeyError(null);
+          toast.success("Clé API valide ! Chargement des modèles...");
+          setIsEditingKey(false);
+        } else {
+          setKeyError("Clé API invalide. Vérifiez votre saisie.");
+        }
+      } catch {
+        setKeyError("Erreur de validation de la clé.");
+      }
+      setValidatingKey(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [settings.ai_api_key, isEditingKey]);
 
   const update = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const saveAIConfig = async () => {
+    if (keyError) {
+      toast.error("Veuillez corriger la clé API avant d'enregistrer.");
+      return;
+    }
+    if (isEditingKey && !settings.ai_api_key) {
+      setIsEditingKey(true);
+    }
+    await saveAll(["ai_api_key","ai_model","ai_instructions","ai_welcome_fr","ai_welcome_ar"]);
   };
 
   const saveAll = async (keys: string[]) => {
@@ -76,7 +163,7 @@ export default function SettingsPage() {
         ? `Rédige une tagline marketing courte pour un restaurant à Casablanca. Réponds uniquement avec la tagline, en une seule phrase, sans guillemets, sans introduction, sans texte avant ou après.`
         : `اكتب شعارًا تسويقيًا قصيرًا لمطعم في الدار البيضاء. أجب بالشعار فقط، في جملة واحدة، بدون أي مقدمة أو علامات اقتباس أو شرح.`);
 
-    setAiGenerating(true);
+    setGeneratingField(field);
     try {
       const res = await fetch("/api/ai-admin", {
         method: "POST",
@@ -97,7 +184,7 @@ export default function SettingsPage() {
     } catch {
       toast.error("Erreur de connexion IA");
     }
-    setAiGenerating(false);
+    setGeneratingField(null);
   };
 
   if (loading) return <div className="flex items-center justify-center py-12 text-muted-foreground">Chargement...</div>;
@@ -129,27 +216,87 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nom (FR)</Label>
-                  <div className="flex gap-2">
-                    <Input value={settings.site_name_fr || ""} onChange={e => update("site_name_fr", e.target.value)} className="flex-1" />
-                    {aiConfigured && <Button size="icon" variant="outline" className="shrink-0 h-9 w-9" onClick={() => aiGenerate("site_name_fr")} disabled={aiGenerating} title="Générer avec IA"><Sparkles className="size-4" /></Button>}
+                  <div className="relative group">
+                    <Input 
+                      value={settings.site_name_fr || ""} 
+                      onChange={e => update("site_name_fr", e.target.value)} 
+                      className={`pr-10 ${generatingField === "site_name_fr" ? "border-blue-400 ring-2 ring-blue-400/20" : ""}`} 
+                    />
+                    {aiConfigured && (
+                      <Button size="icon" variant="ghost" onClick={() => aiGenerate("site_name_fr")} disabled={generatingField !== null} title="Générer avec IA" className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-black hover:bg-transparent ${generatingField === "site_name_fr" ? "animate-pulse text-blue-600" : ""}`}>
+                        <Sparkles className="size-4" />
+                      </Button>
+                    )}
+                    {generatingField === "site_name_fr" && (
+                      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent -translate-x-[150%] animate-[gemini-shimmer_1.5s_infinite]" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Nom (AR)</Label>
-                  <Input value={settings.site_name_ar || ""} onChange={e => update("site_name_ar", e.target.value)} dir="rtl" />
+                  <div className="relative group">
+                    <Input 
+                      value={settings.site_name_ar || ""} 
+                      onChange={e => update("site_name_ar", e.target.value)} 
+                      dir="rtl" 
+                      className={`pl-10 pr-3 ${generatingField === "site_name_ar" ? "border-blue-400 ring-2 ring-blue-400/20" : ""}`} 
+                    />
+                    {aiConfigured && (
+                      <Button size="icon" variant="ghost" onClick={() => aiGenerate("site_name_ar")} disabled={generatingField !== null} title="Générer avec IA" className={`absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-black hover:bg-transparent ${generatingField === "site_name_ar" ? "animate-pulse text-blue-600" : ""}`}>
+                        <Sparkles className="size-4" />
+                      </Button>
+                    )}
+                    {generatingField === "site_name_ar" && (
+                      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent translate-x-[150%] animate-[gemini-shimmer_1.5s_infinite_reverse]" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Tagline (FR)</Label>
-                  <div className="flex gap-2">
-                    <Input value={settings.site_tagline_fr || ""} onChange={e => update("site_tagline_fr", e.target.value)} className="flex-1" />
-                    {aiConfigured && <Button size="icon" variant="outline" className="shrink-0 h-9 w-9" onClick={() => aiGenerate("site_tagline_fr")} disabled={aiGenerating}><Sparkles className="size-4" /></Button>}
+                  <div className="relative group">
+                    <Input 
+                      value={settings.site_tagline_fr || ""} 
+                      onChange={e => update("site_tagline_fr", e.target.value)} 
+                      className={`pr-10 ${generatingField === "site_tagline_fr" ? "border-blue-400 ring-2 ring-blue-400/20" : ""}`} 
+                    />
+                    {aiConfigured && (
+                      <Button size="icon" variant="ghost" onClick={() => aiGenerate("site_tagline_fr")} disabled={generatingField !== null} className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-black hover:bg-transparent ${generatingField === "site_tagline_fr" ? "animate-pulse text-blue-600" : ""}`}>
+                        <Sparkles className="size-4" />
+                      </Button>
+                    )}
+                    {generatingField === "site_tagline_fr" && (
+                      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent -translate-x-[150%] animate-[gemini-shimmer_1.5s_infinite]" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Tagline (AR)</Label>
-                  <Input value={settings.site_tagline_ar || ""} onChange={e => update("site_tagline_ar", e.target.value)} dir="rtl" />
+                  <div className="relative group">
+                    <Input 
+                      value={settings.site_tagline_ar || ""} 
+                      onChange={e => update("site_tagline_ar", e.target.value)} 
+                      dir="rtl" 
+                      className={`pl-10 pr-3 ${generatingField === "site_tagline_ar" ? "border-blue-400 ring-2 ring-blue-400/20" : ""}`} 
+                    />
+                    {aiConfigured && (
+                      <Button size="icon" variant="ghost" onClick={() => aiGenerate("site_tagline_ar")} disabled={generatingField !== null} className={`absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-black hover:bg-transparent ${generatingField === "site_tagline_ar" ? "animate-pulse text-blue-600" : ""}`}>
+                        <Sparkles className="size-4" />
+                      </Button>
+                    )}
+                    {generatingField === "site_tagline_ar" && (
+                      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent translate-x-[150%] animate-[gemini-shimmer_1.5s_infinite_reverse]" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,26 +413,63 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Clé API OpenRouter</Label>
-                <Input type="password" value={settings.ai_api_key || ""} onChange={e => update("ai_api_key", e.target.value)} placeholder="sk-or-..." />
+                <div className="flex gap-2">
+                  <Input 
+                    type="password" 
+                    value={settings.ai_api_key && !isEditingKey ? "••••••••••••••••••••••••••••••••••••••••••••••••" : (settings.ai_api_key || "")} 
+                    disabled={!!settings.ai_api_key && !isEditingKey}
+                    onChange={e => update("ai_api_key", e.target.value)} 
+                    placeholder="sk-or-..." 
+                    className={`flex-1 transition-all ${keyError ? 'border-red-500 ring-2 ring-red-500/20' : ''} ${validatingKey ? 'opacity-70' : ''}`}
+                  />
+                  {settings.ai_api_key && !isEditingKey ? (
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="shrink-0 h-9 w-9"
+                      onClick={() => {
+                        setIsEditingKey(true);
+                        update("ai_api_key", "");
+                        setKeyError(null);
+                      }}
+                      title="Supprimer et remplacer la clé"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  ) : null}
+                </div>
+                {validatingKey && (
+                  <p className="text-sm text-blue-600 animate-pulse font-medium"><Loader2 className="size-4 mr-1 text-blue-600 animate-spin inline" />Vérification de la clé en cours...</p>
+                )}
+                {keyError && !validatingKey && (
+                  <p className="text-sm text-red-500 font-medium"><XCircle className="size-4 mr-1 inline" />{keyError}</p>
+                )}
+                {settings.ai_api_key && !isEditingKey && !validatingKey && !keyError && (
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium"><CheckCircle2 className="size-4 mr-1 inline" />Clé API configurée (Active)</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Modèle IA</Label>
-                <Select value={settings.ai_model || "openrouter/auto"} onValueChange={(v) => v && update("ai_model", v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select disabled={!settings.ai_api_key || isEditingKey || aiModels.length === 0} value={settings.ai_model || "openrouter/auto"} onValueChange={(v) => v && update("ai_model", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={!settings.ai_api_key || isEditingKey ? "Configurez une clé API valide..." : "Sélectionner un modèle"}>
+                      {!settings.ai_api_key || isEditingKey ? "Configurez une clé API valide..." : ((val: string) => aiModels.find(m => m.value === val)?.label || val)}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
-                    {AI_MODELS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                    {aiModels.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Instructions (prompt système)</Label>
-                <Textarea value={settings.ai_instructions || ""} onChange={e => update("ai_instructions", e.target.value)} rows={4} />
+                <Textarea value={settings.ai_instructions || ""} onChange={e => update("ai_instructions", e.target.value)} rows={4} disabled={!settings.ai_api_key || isEditingKey} />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Message accueil (FR)</Label><Textarea value={settings.ai_welcome_fr || ""} onChange={e => update("ai_welcome_fr", e.target.value)} rows={2} /></div>
-                <div className="space-y-2"><Label>Message accueil (AR)</Label><Textarea value={settings.ai_welcome_ar || ""} onChange={e => update("ai_welcome_ar", e.target.value)} rows={2} dir="rtl" /></div>
+                <div className="space-y-2"><Label>Message accueil (FR)</Label><Textarea value={settings.ai_welcome_fr || ""} onChange={e => update("ai_welcome_fr", e.target.value)} rows={2} disabled={!settings.ai_api_key || isEditingKey} /></div>
+                <div className="space-y-2"><Label>Message accueil (AR)</Label><Textarea value={settings.ai_welcome_ar || ""} onChange={e => update("ai_welcome_ar", e.target.value)} rows={2} dir="rtl" disabled={!settings.ai_api_key || isEditingKey} /></div>
               </div>
-              <Button onClick={() => saveAll(["ai_api_key","ai_model","ai_instructions","ai_welcome_fr","ai_welcome_ar"])} disabled={saving} className="bg-[#CC0000] hover:bg-[#AA0000] rounded-lg">
+              <Button onClick={saveAIConfig} disabled={saving} className="bg-[#CC0000] hover:bg-[#AA0000] rounded-lg">
                 <Save className="mr-2 size-4" /> Enregistrer
               </Button>
             </CardContent>

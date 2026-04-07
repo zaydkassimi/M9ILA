@@ -36,6 +36,7 @@ export default function OrderPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartLoaded, setCartLoaded] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -475,19 +476,19 @@ export default function OrderPage() {
       {/* Checkout Modal */}
       <AnimatePresence>
         {checkoutOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setCheckoutOpen(false)}
-              className="fixed inset-0 bg-black/50 z-50"
-            />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setCheckoutOpen(false)}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-white rounded-2xl shadow-2xl z-50 flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
             >
               <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="text-xl font-bold text-dark">{currentT.checkout}</h2>
@@ -588,7 +589,7 @@ export default function OrderPage() {
                 </button>
               </form>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </main>

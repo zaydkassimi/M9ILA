@@ -19,9 +19,9 @@ import {
 
 function Pepper({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M18 2c-1 2-2 4-2 6 0 3-2 6-5 8s-6 3-8 3c0 0 1-3 1-6 0-2 1-4 3-5s4-2 6-3c2-1 3-3 5-3z" />
-    </svg>
+    <span className={`inline-flex items-center justify-center ${className || ""}`} style={{ fontSize: "1.2em", lineHeight: 1 }}>
+      🌶️
+    </span>
   );
 }
 import { toast } from "sonner";
@@ -738,23 +738,34 @@ export default function ProductsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Piment (0-3)</Label>
-                <div className="flex gap-2">
-                  {[0, 1, 2, 3].map(level => (
+                <Label className="text-xs">Niveau de piment</Label>
+                <div className="grid grid-cols-4 gap-3">
+                  {[
+                    { level: 0, label: "Doux", activeColor: "border-gray-800 bg-gray-50 text-gray-900" },
+                    { level: 1, label: "Léger", activeColor: "border-yellow-500 bg-yellow-50 text-yellow-700" },
+                    { level: 2, label: "Moyen", activeColor: "border-orange-500 bg-orange-50 text-orange-700" },
+                    { level: 3, label: "Fort", activeColor: "border-red-600 bg-red-50 text-red-700 font-bold" },
+                  ].map(({ level, label, activeColor }) => (
                     <button
                       key={level}
                       type="button"
                       onClick={() => setForm({ ...form, spicinessLevel: level })}
-                      className={`flex items-center gap-1 px-3 py-2 rounded-lg border-2 text-sm transition-all ${
+                      className={`flex flex-col items-center justify-center gap-1.5 py-2.5 rounded-lg border-2 transition-all duration-200 ${
                         form.spicinessLevel === level
-                          ? "border-red-500 bg-red-50 text-red-600"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? `shadow-sm scale-[1.02] ${activeColor}`
+                          : "border-border bg-transparent text-muted-foreground hover:bg-secondary/50 hover:border-border/80"
                       }`}
                     >
-                      {Array.from({ length: level }).map((_, i) => (
-                        <Pepper key={i} className="size-4" />
-                      ))}
-                      {level === 0 && <span className="text-muted-foreground">Doux</span>}
+                      <div className="flex h-5 items-center justify-center gap-0.5">
+                        {level === 0 ? (
+                          <div className="size-4 rounded-full border-2 border-current opacity-30" />
+                        ) : (
+                          Array.from({ length: level }).map((_, i) => (
+                            <Pepper key={i} className={form.spicinessLevel === level ? "opacity-100" : "opacity-40 grayscale"} />
+                          ))
+                        )}
+                      </div>
+                      <span className="text-xs font-medium">{label}</span>
                     </button>
                   ))}
                 </div>
