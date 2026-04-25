@@ -32,7 +32,7 @@ function sanitizeGeneratedText(text: string) {
   output = output.replace(/^{.*"description\w*"\s*:\s*"/i, "");
   output = output.replace(/"\s*}\s*$/i, "");
   output = output.replace(/^[-•*\s"'`]+/, "").replace(/[-•*\s"'`]+$/, "");
-  output = output.replace(/^([A-Za-zÀ-ÿĀ-ž0-9_.-]+)\s*:\s*/u, "");
+  output = output.replace(/^([A-Za-zÀ-ÿĀ-ž0-9_.-]+)\s*:\s*/, "");
   output = output.replace(/^(?:Bien sûr|Voici|Voici une idée|Voici une proposition|Voici le texte|Voici la réponse)[^:]*:\s*/i, "");
   output = output.replace(/^.*?(?:tagline|slogan|nom)\s*(?:français|en français|arabe|en arabe)?\s*(?:pour|de)?\s*[^:]*:\s*/i, "");
   output = output.replace(/^"(.+)"$/, "$1");
