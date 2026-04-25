@@ -155,7 +155,7 @@ export default function OrdersPage() {
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Toutes dates</SelectItem>
-              <SelectItem value="today">Aujourd'hui</SelectItem>
+              <SelectItem value="today">Aujourd&apos;hui</SelectItem>
               <SelectItem value="week">7 derniers jours</SelectItem>
               <SelectItem value="month">30 derniers jours</SelectItem>
             </SelectContent>
